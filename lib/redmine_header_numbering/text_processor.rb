@@ -1,24 +1,10 @@
 module RedmineHeaderNumbering
-  class HookListener < Redmine::Hook::Listener
-    def controller_wiki_show_before_render(context = {})
-      #puts "[DEBUG] Hook triggered: controller_wiki_show_before_render"
-
-      controller = context[:controller]
-      @wiki_page = controller.instance_variable_get(:@page)
-      @wiki_content = @wiki_page.content
-
-      if @wiki_content.text.include?('{{number_headers}}')
-        #puts "[DEBUG] Found {{number_headers}} macro, processing headers..."
-        processed_content = HookListener::process_headers(@wiki_content.text)
-        @wiki_page.content.text = processed_content
-      else
-        #puts "[DEBUG] {{number_headers}} macro NOT found in content."
-      end
-    end
-
+  class TextProcessor
     HEADER_REGEX = /^##+/.freeze unless defined?(HEADER_REGEX)
 
     def self.process_headers(text)
+      puts "[DEBUG] TextProcessor.process_headers"
+
       header_stack = []  # Tracks counters for each level (e.g., [1, 1] for h2 > h3)
       last_level = 1     # Tracks the last header level processed. Start at one, because we skip level 1
 

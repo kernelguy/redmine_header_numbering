@@ -1,4 +1,5 @@
 require_relative File.expand_path('../lib/redmine_header_numbering', __FILE__)
+#require 'redmine_header_numbering'
 
 Redmine::Plugin.register :redmine_header_numbering do
   name 'Wiki Header Numbering Plugin'
