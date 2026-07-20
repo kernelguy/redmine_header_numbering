@@ -1,49 +1,67 @@
 module RedmineHeaderNumbering
   class HookListener < Redmine::Hook::Listener
-    # Fires before the Wiki page is rendered
     def controller_wiki_show_before_render(context = {})
+      #puts "[DEBUG] Hook triggered: controller_wiki_show_before_render"
+
       controller = context[:controller]
       @wiki_page = controller.instance_variable_get(:@page)
       @wiki_content = @wiki_page.content
 
-      # Check if the macro {{number_headers}} is present in the content
       if @wiki_content.text.include?('{{number_headers}}')
-        # Process the content to add numbering
-        processed_content = process_headers(@wiki_content.text)
-
-        # Replace the content with the processed version
+        #puts "[DEBUG] Found {{number_headers}} macro, processing headers..."
+        processed_content = HookListener::process_headers(@wiki_content.text)
         @wiki_page.content.text = processed_content
+      else
+        #puts "[DEBUG] {{number_headers}} macro NOT found in content."
       end
     end
 
-    private
+    HEADER_REGEX = /^##+/.freeze unless defined?(HEADER_REGEX)
 
-    def process_headers(text)
-      lines = text.split("\n")
-      header_stack = [] # Track header levels (e.g., [1, 1, 2] for h1, h1, h2)
-      number_headers = false # Flag to enable numbering
+    def self.process_headers(text)
+      header_stack = []  # Tracks counters for each level (e.g., [1, 1] for h2 > h3)
+      last_level = 1     # Tracks the last header level processed. Start at one, because we skip level 1
 
-      lines.map do |line|
+      text.gsub(/(^.+$)/) do |line|
         if line.include?('{{number_headers}}')
-          number_headers = true
-          line.gsub('{{number_headers}}', '') # Remove the macro from output
-        elsif line.start_with?('#') && number_headers
-          # Extract header level and text
-          level = line.match(/^#+/)[0].length
-          header_text = line.sub(/^#+/, '').strip
+          line.gsub('{{number_headers}}', '')  # Remove the macro from output
+
+        elsif line.start_with?('##')  # Only process level 2+ headers
+          # Extract header level (e.g., '##' -> 2, '###' -> 3)
+          new_level = line.match(HEADER_REGEX)[0].length
+          index = new_level - 2
+
+          # Extract header text
+          header_text = line.sub(HEADER_REGEX, '').strip
 
           # Adjust the stack for the current level
-          header_stack = header_stack[0...level - 1] if level <= header_stack.size
-          header_stack << (header_stack.last || 0) + 1
+          if new_level < last_level
+            # Reset counters for levels deeper than the current one
+            header_stack = header_stack[0...index + 1]
+            header_stack[index] = header_stack[index] + 1 # Increment the counter for the new level
+
+          elsif new_level == last_level
+            header_stack[index] = header_stack[index] + 1 # Increment the counter for the current level
+
+          elsif new_level > last_level
+            # Fill gaps (e.g., h2 -> h4) with 1s
+            header_stack += Array.new(new_level - last_level, 1) # All new levels start at 1
+          end
 
           # Generate the numbered header
           number = header_stack.join('.')
-          "#{'#' * level} #{number} #{header_text}"
+
+          #puts "[DEBUG] new_level: #{new_level}, last_level: #{last_level}, stack: #{header_stack}, number: #{number}, text: #{header_text}"
+
+          # Update last_level
+          last_level = new_level
+
+          "#{'#' * last_level} #{number} #{header_text}"
         else
           line
         end
-      end.join("\n")
+      end
     end
+
   end
 end
-
