@@ -1,3 +1,4 @@
+require 'redmine'
 require_relative File.expand_path('../lib/redmine_header_numbering', __FILE__)
 #require 'redmine_header_numbering'
 
@@ -7,5 +8,6 @@ Redmine::Plugin.register :redmine_header_numbering do
   description 'Adds optional numbering to headers in Redmine Wiki pages'
   version '0.0.1'
   url 'https://github.com/kernelguy/redmine_header_numbering'
+  requires_redmine :version_or_higher => '7.0.0'
 end
 

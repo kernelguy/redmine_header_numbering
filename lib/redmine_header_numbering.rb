@@ -1,36 +1,50 @@
+require 'redmine'
 require_relative 'redmine_header_numbering/text_processor'
-require_relative 'redmine_header_numbering/macro/number_headers'
 
 module RedmineHeaderNumbering
   module WikiFormattingPatch
     def to_html(format, text, options = {})
-      Rails.logger.info "[DEBUG] WikiFormattingPatch::to_html is called!"
+      obj = options[:object]
 
-      Rails.logger.debug "[DEBUG] Wiki info: format: #{format}, text: #{text}, options: #{options}"
+      # TODO: The text argument is the only updated text during preview, but macros are exchanged with macro(\d+).
+      # So inserting or deleting a {{number_headers}} macro will not take effect until after save.
 
-      # 1. Tjek om teksten er til stede og indeholder din makro
-      if text.present? && text.include?('{{number_headers}}')
-        Rails.logger.info "[DEBUG] Nummerering udløst for tekststykke!"
+      # Check if macro is in text
+      has_macro = false
+      if obj.present?
+        if obj.respond_to?(:text) # WikiContent
+          Rails.logger.info "[DEBUG] to_html(): obj.text: #{obj.text}"
+          has_macro = obj.text.to_s.include?('{{number_headers}}')
+        elsif obj.respond_to?(:description) # Issue / Task description
+          Rails.logger.info "[DEBUG] to_html(): obj.description: #{obj.description}"
+          has_macro = obj.description.to_s.include?('{{number_headers}}')
+        elsif obj.respond_to?(:notes) # Journal / Notes comments
+          Rails.logger.info "[DEBUG] to_html(): obj.notes: #{obj.notes}"
+          has_macro = obj.notes.to_s.include?('{{number_headers}}')
+        end
+      elsif (obj.nil? && text.present?) # During preview, obj is always nil
+        Rails.logger.info "[DEBUG] to_html(): text: #{text}"
+        has_macro = text.include?('{{number_headers}}')
+      end
 
-        # Generer den nye tekst med sektionsnumre via din processor
+      if has_macro
+        Rails.logger.info "[DEBUG] WikiFormattingPatch: Header numbering activated for #{obj.class if obj}!"
         text = RedmineHeaderNumbering::TextProcessor.process_headers(text)
       end
 
-      # 2. VIGTIGT FOR RAILS 8: Vi skal sende (format, text, options) eksplicit med i super.
-      # Hvis vi bare skriver 'super', bruger Ruby de helt oprindelige, umodificerede argumenter.
       super(format, text, options)
     end
   end
 end
 
-# Da patchen beviseligt kører med det samme, danner vi præpenderingen direkte her
-# uden at pakke det ind i utilregnelige callbacks:
+# Prepend patch to class method
 Redmine::WikiFormatting.singleton_class.prepend(RedmineHeaderNumbering::WikiFormattingPatch)
 
-# Registrering af makroen (så den ikke kaster fejl i editoren)
+# Register macro, to just return an empty string and not fail
 Redmine::WikiFormatting::Macros.register do
-  desc "Enable header numbering for this Wiki page."
+  desc "Enable header numbering for this page/issue/comment."
   macro :number_headers do |obj, args, text|
-    nil
+    Rails.logger.info "[DEBUG] number_headers macro activated!"
+    "".html_safe
   end
 end

@@ -3,12 +3,12 @@ module RedmineHeaderNumbering
     HEADER_REGEX = /^##+/.freeze unless defined?(HEADER_REGEX)
 
     def self.process_headers(text)
-      puts "[DEBUG] TextProcessor.process_headers"
+      puts "[DEBUG] TextProcessor.process_headers(#{text})"
 
       header_stack = []  # Tracks counters for each level (e.g., [1, 1] for h2 > h3)
       last_level = 1     # Tracks the last header level processed. Start at one, because we skip level 1
 
-      text.gsub(/(^.+$)/) do |line|
+      text.gsub!(/(^.+$)/) do |line|
         if line.include?('{{number_headers}}')
           line.gsub('{{number_headers}}', '')  # Remove the macro from output
 

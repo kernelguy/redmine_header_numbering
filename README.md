@@ -1,23 +1,94 @@
-# Header Numbering for Redmine Wiki pages
+# Wiki Header Numbering Plugin
 
-This macro adds header numbering to wiki pages in Redmine, in the following style:
+A clean and lightweight Redmine plugin that adds optional hierarchical section numbering to headers in Wiki pages, Issue descriptions, and Journal notes/comments.
 
-\# Header -> 1 Header  
-\## Sub Header -> 1.1 Sub Header  
+This plugin is fully compatible with **Redmine 7.0+** and **Rails 8.1+** utilizing the modern **Zeitwerk** autoloader.
+
+## Features
+
+- **Optional Activation:** Only triggers on pages where you explicitly place the `{{number_headers}}` macro.
+- **Hierarchical Numbering:** Automatically converts standard Markdown headers (e.g., `## Header`, `### Subheader`) into numbered sections (e.g., `## 1 Header`, `### 1.1 Subheader`).
+- **Full Cross-Feature Support:** Works flawlessly in Wiki pages, Issue descriptions, and Journal comments.
+- **Preview Support:** Works in real-time inside the "Preview" tab before saving your changes.
+- **TOC Integration:** Automatically syncs with the built-in `{{toc}}` (Table of Contents) macro, ensuring your generated index matches the section numbers perfectly.
+- **Safe Execution:** Processes content dynamically on-the-fly without altering or corrupting the raw data inside your database.
+
+## Requirements
+
+- Redmine >= 7.0-stable
+- Rails >= 8.1
+- Ruby >= 3.2
 
 ## Installation
 
-1. Place the plugin in your Redmine installation’s plugins/ directory:
-```
-/path/to/redmine/plugins/redmine_header_numbering/
+1. Navigate to your Redmine plugins directory:
+   ```bash
+   cd /path/to/redmine/plugins
+   ```
+
+2. Clone this repository into a folder named exactly `redmine_header_numbering`:
+   ```bash
+   git clone https://github.com redmine_header_numbering
+   ```
+
+3. Restart your Redmine application server (e.g., Puma, Passenger, Thin):
+   ```bash
+   # Example for Puma environment
+   touch /path/to/redmine/tmp/restart.txt
+   ```
+
+## Usage
+
+Simply add the `{{number_headers}}` macro anywhere inside your Wiki text, Issue description, or Comment.
+
+### Example Markdown Input
+
+```markdown
+{{toc}}
+{{number_headers}}
+
+# Document Title
+
+## Introduction
+This level 2 header will become section 1.
+
+### Background
+This level 3 header will become section 1.1.
+
+## Main Content
+This level 2 header will become section 2.
 ```
 
-2. Restart Redmine to load the plugin.
-3. Test the macro in a Wiki page by adding:
+### Rendered Output (and Table of Contents)
 
+```text
+Table of Contents
+1 Introduction
+  1.1 Background
+2 Main Content
+
+Document Title
+1 Introduction
+This level 2 header will become section 1.
+
+1.1 Background
+This level 3 header will become section 1.1.
+
+2 Main Content
+This level 2 header will become section 2.
 ```
-{{header_numbering}}
-```
-to the top of the wiki page that requires numbered headers.
 
+*Note: Level 1 headers (`# Title`) are traditionally reserved for main document titles and are skipped by the numbering processor.*
 
+## How it works under the hood
+
+Unlike older legacy plugins, this plugin hooks directly into `Redmine::WikiFormatting.singleton_class` using modern Ruby module prepending. It intercepts the raw text slused into the Markdown processor, executes regex-based hierarchy calculation, and passes the numbered text onto Redmine. It cleanly bypasses double-rendering or macro-stripping bugs common in async Redmine architectures.
+
+## Future Roadmap (v0.0.2)
+- Option to toggle level 1 header skipping.
+- Support for Roman numerals (`I, II, III`) and Alphabetical prefixes (`A, B, C`).
+- Embedded CSS class hooks for separate styling of section numbers.
+
+## License
+
+This plugin is released under the [MIT License](LICENSE).
