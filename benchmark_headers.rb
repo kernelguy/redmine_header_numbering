@@ -22,7 +22,13 @@ large_wiki_text = wiki_text * 100  # 100 copies of the sample text
 require 'benchmark'
 
 Benchmark.bm do |x|
-  x.report("process_headers:") do
+  x.report("Sample output") do
+    2.times do
+      puts RedmineHeaderNumbering::TextProcessor::process_headers(wiki_text)
+    end
+  end
+
+  x.report("1000x heavy load") do
     1000.times do
       RedmineHeaderNumbering::TextProcessor::process_headers(large_wiki_text)
     end
