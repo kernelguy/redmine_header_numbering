@@ -1,8 +1,9 @@
-# Wiki Header Numbering Plugin
+# Automatic Header Numbering Plugin
 
-A clean and lightweight Redmine plugin that adds optional hierarchical section numbering to headers in Wiki pages, Issue descriptions, and Journal notes/comments.
+A clean and lightweight Redmine plugin that adds optional hierarchical section numbering to headers in Wiki pages,
+Issue descriptions, and Journal notes/comments.
 
-This plugin is fully compatible with **Redmine 7.0+** and **Rails 8.1+** utilizing the modern **Zeitwerk** autoloader.
+This plugin is fully compatible with **Redmine 6.0+** and **Rails 7.2+** using the modern **Zeitwerk** autoloader.
 
 ## Features
 
@@ -12,11 +13,13 @@ This plugin is fully compatible with **Redmine 7.0+** and **Rails 8.1+** utilizi
 - **Preview Support:** Works in real-time inside the "Preview" tab before saving your changes.
 - **TOC Integration:** Automatically syncs with the built-in `{{toc}}` (Table of Contents) macro, ensuring your generated index matches the section numbers perfectly.
 - **Safe Execution:** Processes content dynamically on-the-fly without altering or corrupting the raw data inside your database.
+- **PDF export:** The header numbering is automatically applied to PDF exports.
+- **Omitted from text export:** The header numbering is NOT included in the plain text export.
 
 ## Requirements
 
-- Redmine >= 7.0-stable
-- Rails >= 8.1
+- Redmine >= 6.0-stable
+- Rails >= 7.2
 - Ruby >= 3.2
 
 ## Installation
@@ -44,10 +47,10 @@ Simply add the `{{number_headers}}` macro anywhere inside your Wiki text, Issue 
 ### Example Markdown Input
 
 ```markdown
-{{toc}}
+# Document Title
 {{number_headers}}
 
-# Document Title
+{{toc}}
 
 ## Introduction
 This level 2 header will become section 1.
@@ -63,6 +66,7 @@ This level 2 header will become section 2.
 
 ```text
 Table of Contents
+Document Title
 1 Introduction
   1.1 Background
 2 Main Content
@@ -78,16 +82,24 @@ This level 3 header will become section 1.1.
 This level 2 header will become section 2.
 ```
 
-*Note: Level 1 headers (`# Title`) are traditionally reserved for main document titles and are skipped by the numbering processor.*
+*Note: Level 1 headers (`# Title`) are traditionally reserved for main document titles and are skipped by the numbering
+processor.*
 
 ## How it works under the hood
 
-Unlike older legacy plugins, this plugin hooks directly into `Redmine::WikiFormatting.singleton_class` using modern Ruby module prepending. It intercepts the raw text slused into the Markdown processor, executes regex-based hierarchy calculation, and passes the numbered text onto Redmine. It cleanly bypasses double-rendering or macro-stripping bugs common in async Redmine architectures.
+Unlike other CSS solutions, this plugin hooks directly into `Redmine::WikiFormatting.singleton_class` using modern Ruby
+module prepending. It intercepts the raw text sent into the Markdown processor, executes regex-based hierarchy
+calculation, and passes the numbered text onto Redmine.
 
-## Future Roadmap (v0.0.2)
+## Known Issues
+ 
+- The preview cannot currently detect if the `{{number_headers}}` macro is present in the given content. Instead, it
+relies on the last saved content to determine the numbering state.
+
+## Future Roadmap
+
 - Option to toggle level 1 header skipping.
 - Support for Roman numerals (`I, II, III`) and Alphabetical prefixes (`A, B, C`).
-- Embedded CSS class hooks for separate styling of section numbers.
 
 ## License
 

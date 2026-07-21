@@ -1,13 +1,11 @@
 require 'redmine'
 require_relative File.expand_path('../lib/redmine_header_numbering', __FILE__)
-#require 'redmine_header_numbering'
 
 Redmine::Plugin.register :redmine_header_numbering do
-  name 'Wiki Header Numbering Plugin'
+  name 'Automatic Header Numbering Plugin'
   author 'Steffen Brummer'
-  description 'Adds optional numbering to headers in Redmine Wiki pages'
-  version '0.0.1'
+  description 'Adds optional numbering to headers in Redmine markdown'
+  version '0.1.0'
   url 'https://github.com/kernelguy/redmine_header_numbering'
-  requires_redmine :version_or_higher => '7.0.0'
+  requires_redmine :version_or_higher => '6.0.0'
 end
-
