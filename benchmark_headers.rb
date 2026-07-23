@@ -5,8 +5,9 @@ require 'benchmark'
 # Sample Wiki text with headers and the macro
 wiki_text = <<~WIKI
   # Title
-
+  {{number_headers}}
   ## Header 1
+    Link to Header 3.1: [#](#Subheader-31)
   ## Header 2
   ### Subheader 2.1
   ### Subheader 2.2
