@@ -78,6 +78,10 @@ module RedmineHeaderNumbering
         end
       end
 
+      # Renumber all  figure and table captions.
+      # ^[Ff]igure\s*\d*:
+      # ^[Tt]able\s*\d*:
+
       # 3. Build the TOC from the detected headers
       toc_markdown = ""
       if max_depth > 0 && header_map.any?
