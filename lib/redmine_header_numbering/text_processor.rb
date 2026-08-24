@@ -78,10 +78,6 @@ module RedmineHeaderNumbering
         end
       end
 
-      # Renumber all  figure and table captions.
-      # ^[Ff]igure\s*\d*:
-      # ^[Tt]able\s*\d*:
-
       # 3. Build the TOC from the detected headers
       toc_markdown = ""
       if max_depth > 0 && header_map.any?
@@ -112,9 +108,10 @@ module RedmineHeaderNumbering
 
     # Simulates Redmine's Markdown anchor generation (hyphens, no special chars)
     def self.format_reference(text)
-      text.gsub(/[^a-zA-Z0-9\-_ ]/, '') # Remove special characters
-          .strip
-          .gsub(/\s+/, '-')          # Replace spaces with single hyphens
+      text.gsub('&', 'amp')             # Replace & with amp first
+          .gsub(/[^a-zA-Z0-9\-_ ]/, '') # Remove special characters (^ = negated regex)
+          .strip                        # Strip all whitespace from both ends
+          .gsub(/\s+/, '-')             # Replace remaining whitespace blocks with single hyphens
     end
   end
 end
