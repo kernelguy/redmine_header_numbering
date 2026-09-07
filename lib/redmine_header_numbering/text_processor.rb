@@ -9,6 +9,7 @@ module RedmineHeaderNumbering
       # Maps the ORIGINAL Redmine anchor ID to the new NUMBERED anchor ID and label
       header_map = {}
       max_depth = 0
+      anchor_counts = Hash.new(0)
 
       # 1. Process and number the headers
       text.gsub!(/^(?:(#+ [^\r\n]+)|({{number_headers\(?\d?\)?}}))(?=\r?$)/) do |matched|
@@ -25,12 +26,19 @@ module RedmineHeaderNumbering
           new_level = hashes.length
           header_text = remainder.to_s.strip
           # Generate Redmine's native anchor ID for the original unnumbered header
-          orig_anchor = TextProcessor.format_reference(header_text)
+          base_anchor = TextProcessor.format_reference(header_text)
 
+          # Test if anchor has occurred before, if so, add an incremental number...
+          count = anchor_counts[base_anchor]
+          orig_anchor = count > 0 ? "#{base_anchor}_#{count}" : base_anchor
+          anchor_counts[base_anchor] += 1
+
+          # Skip level 1 headings, reserved for title
           if new_level <= 1
             header_map[orig_anchor] = { number: '', anchor: orig_anchor, orig_text: header_text, level: new_level }
             "#{'#' * new_level} #{header_text}"
           else
+            # Prepend numbers or all sub level headings.
             index = new_level - 2
 
             if new_level < last_level
